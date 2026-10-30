@@ -1,16 +1,14 @@
 name: Interactive Mac Shell
 
 on:
-  workflow_dispatch: # Allows you to manually click "Run workflow"
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest # This provisions a real macOS VM
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: false # Set to true if you only want your own GitHub SSH keys to have access
+      - name: Setup Upterm session (Interactive SSH)
+        uses: owenthereal/action-upterm@v1
