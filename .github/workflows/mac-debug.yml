@@ -31,3 +31,48 @@ jobs:
           echo "=== STARTING TUNNEL ==="
           ssh -p 443 -R0:localhost:22 tcp@free.pinggy.io &
           sleep 900
+
+
+name: Native Mac SSH with Auto-Renew
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Enable Native SSH & Inject Key
+        run: |
+          sudo systemsetup -setremotelogin on
+          
+          # Set up proper ownership and strict 700/600 permissions
+          mkdir -p ~/.ssh
+          echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMa6qW+Bmp+SB2zPoxEZPF980oYxNOVZORIFPLEkl35v ubuntu20vm" > ~/.ssh/authorized_keys
+          
+          sudo chown -R runner:staff /Users/runner/.ssh
+          chmod 700 /Users/runner/.ssh
+          chmod 600 /Users/runner/.ssh_authorized_keys 2>/dev/null || true
+          chmod 600 /Users/runner/.ssh/authorized_keys
+          
+          # Disable StrictModes so macOS doesn't drop automated runner keys
+          sudo bash -c 'echo "StrictModes no" >> /etc/ssh/sshd_config'
+          sudo launchctl kickstart -k system/com.openssh.sshd
+
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" >> ~/.ssh/config
+
+          echo "=== STARTING AUTO-RENEWING TUNNEL LOOP ==="
+          
+          # This loop restarts the tunnel automatically every time it expires
+          while true; do
+            echo "--- Launching fresh Pinggy tunnel ---"
+            ssh -p 443 -R0:localhost:22 tcp@free.pinggy.io || true
+            echo "Tunnel dropped or expired. Restarting in 3 seconds..."
+            sleep 3
+          done &
+
+          # Keep the job alive for up to 6 hours (adjust sleep as needed)
+          sleep 21600
