@@ -1,4 +1,4 @@
-name: Native Mac SSH (No Tmux)
+name: Native Mac SSH
 
 on:
   workflow_dispatch:
@@ -10,18 +10,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Enable Native macOS SSH Server
-        run: |
-          sudo systemsetup -setremotelogin on
-          mkdir -p ~/.ssh
-          echo "${{ secrets.MY_SSH_PUBLIC_KEY }}" >> ~/.ssh/authorized_keys
-          chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
-
-      - name: Expose via Localhost.run (Dynamic Port)
-        run: |
-          echo "=== YOUR NATIVE SSH CONNECTION STRING ==="
-          ssh -o StrictHostKeyChecking=no -R 0:localhost:22 nokey@localhost.run &
-          TUNNEL_PID=$!
-          echo "Tunnel is active. Waiting 15 minutes before shutting down..."
-          sleep 900
-          kill $TUNNEL_PID || true
+      - name: Start SSH via P3TERX Action
+        uses: P3TERX/ssh-action@vnlp
+        with:
+          # Injects your public key directly into the Mac runner's authorized_keys
+          ssh-public-key: ${{ secrets.MY_SSH_PUBLIC_KEY }}
+          # Keeps the workflow alive until you disconnect or timeout
+          required-sudo: true
