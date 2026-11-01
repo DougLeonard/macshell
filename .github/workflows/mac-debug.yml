@@ -10,10 +10,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Start SSH via P3TERX Action
-        uses: P3TERX/ssh-action@vnlp
+      - name: Start SSH Session
+        uses: lexbritvin/ssh-session-action@v1
         with:
-          # Injects your public key directly into the Mac runner's authorized_keys
-          ssh-public-key: ${{ secrets.MY_SSH_PUBLIC_KEY }}
-          # Keeps the workflow alive until you disconnect or timeout
-          required-sudo: true
+          use-actor-ssh-keys: true
+          # Uses public jump hosts (like pinggy or serveo) to route the tunnel cleanly
+          ssh-jump-host: 'free.pinggy.io'
+          ssh-jump-port: '443'
+          ssh-jump-user: 'tcp'
+          ssh-jump-forward: '0'
