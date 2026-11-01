@@ -16,7 +16,7 @@ jobs:
           
           # Set up proper ownership and strict 700/600 permissions
           mkdir -p ~/.ssh
-          echo "${{ secrets.MY_SSH_PUBLIC_KEY }}" > ~/.ssh/authorized_keys
+          echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMa6qW+Bmp+SB2zPoxEZPF980oYxNOVZORIFPLEkl35v" > ~/.ssh/authorized_keys
           
           sudo chown -R runner:staff /Users/runner/.ssh
           chmod 700 /Users/runner/.ssh
