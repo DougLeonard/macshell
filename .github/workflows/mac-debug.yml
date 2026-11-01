@@ -1,4 +1,4 @@
-name: Interactive Mac Shell
+name: Native Mac SSH (No Tmux)
 
 on:
   workflow_dispatch:
@@ -10,5 +10,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Upterm session (Interactive SSH)
-        uses: owenthereal/action-upterm@v1
+      - name: Enable Native macOS SSH Server
+        run: |
+          sudo systemsetup -setremotelogin on
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MY_SSH_PUBLIC_KEY }}" >> ~/.ssh/authorized_keys
+          chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
+
+      - name: Expose via Localhost.run (Raw TCP Tunnel)
+        run: |
+          echo "=== YOUR NATIVE SSH CONNECTION STRING ==="
+          ssh -o StrictHostKeyChecking=no -R 22:localhost:22 localhost.run
