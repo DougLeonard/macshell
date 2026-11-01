@@ -1,23 +1,19 @@
-name: Native Mac SSH
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Enable Native SSH & Inject Key
+- name: Enable Native SSH & Inject Key
         run: |
           sudo systemsetup -setremotelogin on
+          
+          # Set up proper ownership and locked-down permissions
           mkdir -p ~/.ssh
-          # Explicitly paste your exact public key string here or via secret:
-          echo "AAAAC3NzaC1lZDI1NTE5AAAAIMa6qW+Bmp+SB2zPoxEZPF980oYxNOVZORIFPLEkl35v" > ~/.ssh/authorized_keys
-          chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
-          sudo chown -R runner:staff ~/.ssh
+          echo "${{ secrets.MY_SSH_PUBLIC_KEY }}" > ~/.ssh/authorized_keys
+          
+          # CRITICAL: sshd rejects authorized_keys if permissions aren't exact
+          sudo chown -R runner:staff /Users/runner/.ssh
+          chmod 700 /Users/runner/.ssh
+          chmod 600 /Users/runner/.ssh/authorized_keys
+          
+          # Force sshd to accept keys and disable strict mode permission barriers
+          sudo bash -c 'echo "StrictModes no" >> /etc/ssh/sshd_config'
+          sudo launchctl kickstart -k system/com.openssh.sshd
 
           echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" >> ~/.ssh/config
 
