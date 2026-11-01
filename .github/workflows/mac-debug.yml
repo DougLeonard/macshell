@@ -10,14 +10,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Start Native SSH with Auto-Accept Host Key
+      - name: Enable Native SSH & Inject Key
         run: |
           sudo systemsetup -setremotelogin on
           mkdir -p ~/.ssh
-          echo "${{ secrets.MY_SSH_PUBLIC_KEY }}" >> ~/.ssh/authorized_keys
+          # Explicitly paste your exact public key string here or via secret:
+          echo "AAAAC3NzaC1lZDI1NTE5AAAAIMa6qW+Bmp+SB2zPoxEZPF980oYxNOVZORIFPLEkl35v" > ~/.ssh/authorized_keys
           chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
+          sudo chown -R runner:staff ~/.ssh
 
-          # Disable strict host checking globally for this session
           echo -e "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" >> ~/.ssh/config
 
           echo "=== STARTING TUNNEL ==="
